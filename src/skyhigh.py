@@ -6,12 +6,13 @@ import signal
 import getopt
 import threading
 import time
-import vlc
+from omxplayer import OMXPlayer
 
 #Global modes
 shutdown = False
 verboseMode = 1
-playFile = ""
+playFile = "/home/pi/skyhigh/movie/MerAnEnBro.mp4"
+player = None
 
 def about():
 	print("SkyHigh")
@@ -26,7 +27,7 @@ def main():
 	#Start listening for SIGINT (Ctrl+C)
 	signal.signal(signal.SIGINT, signal_handler)
 
-	initVLC()
+	initOMX()
 
 	t = threading.Thread(target=threadPlayLoop, args=())
 	t.start()
@@ -34,63 +35,22 @@ def main():
 	#Cause the process to sleep until a signal is received
 	signal.pause()
 
-	unloadVLC()
+	unloadOMX()
 
 	if verboseMode > 2:
 		print("Thread is closed, terminating process.")
 	sys.exit(0)
 
-class Player():
-	def __init__(self):
-		# creating a basic vlc instance
-		self.instance = vlc.Instance('--fullscreen', '--mouse-hide-timeout=0')
-		# creating an empty vlc media player
-		self.mediaplayer = self.instance.media_player_new()
-		self.isPaused = False
-
-	def PlayPause(self):
-		if self.mediaplayer.is_playing():
-			self.mediaplayer.pause()
-			self.isPaused = True
-		else:
-			if self.mediaplayer.play() == -1:
-				self.OpenFile()
-				return
-			self.mediaplayer.play()
-			self.isPaused = False
-
-	def Stop(self):
-		self.mediaplayer.stop()
-		self.playbutton.setText("Play")
-
-	def OpenFile(self, filename=None):
-		if not filename:
-			return
-		if sys.version < '3':
-			filename = unicode(filename)
-		self.media = self.instance.media_new(filename)
-		self.mediaplayer.set_media(self.media)
-
-		# parse the metadata of the file
-		self.media.parse()
-		self.PlayPause()
-
-	def setVolume(self, Volume):
-		self.mediaplayer.audio_set_volume(Volume)
-
-	def setPosition(self, position):
-		self.mediaplayer.set_position(position)
-		# the vlc MediaPlayer needs a float value between 0 and 1
-
-def initVLC():
-	player = Player()
-	player.OpenFile(playFile)
+def initOMX():
+	global player
 	if verboseMode > 1:
-		print("VLC Init")
+		print("OMX Init")
+	player = OMXPlayer(playFile, args=['--no-osd', '--no-keys', '-b'])
 
-def unloadVLC():
+def unloadOMX():
 	if verboseMode > 1:
-		print("VLC Unload")
+		print("OMX Unload")
+	player.quit()
 
 def threadPlayLoop():
 	while not shutdown :
