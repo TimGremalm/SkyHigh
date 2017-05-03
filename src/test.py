@@ -29,7 +29,7 @@ class Player(QtGui.QMainWindow):
 	"""
 	def __init__(self, master=None):
 		QtGui.QMainWindow.__init__(self, master)
-		self.setWindowTitle("Media Player")
+		self.setWindowTitle("Sky High")
 
 		# creating a basic vlc instance
 		self.instance = vlc.Instance()
