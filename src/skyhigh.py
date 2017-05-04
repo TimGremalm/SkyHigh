@@ -54,9 +54,22 @@ def unloadOMX():
 
 def threadPlayLoop():
 	while not shutdown :
-		if verboseMode > 1:
+		if verboseMode > 2:
 			print("play loop")
+		checkPlayerDuration()
 		time.sleep(1)
+
+def checkPlayerDuration():
+	if player.is_playing():
+		dur = player.duration()
+		pos = player.position()
+		delta = dur-pos
+		if verboseMode > 2:
+			print("Duration: {}".format(delta))
+		if delta < 1:
+			if verboseMode > 1:
+				print("Less than a second left. Pause OMX.")
+			player.pause()
 
 def aboutAndUsage():
 	about()
