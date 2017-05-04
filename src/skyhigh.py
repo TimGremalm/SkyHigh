@@ -57,7 +57,7 @@ def threadPlayLoop():
 		if verboseMode > 2:
 			print("play loop")
 		checkPlayerDuration()
-		time.sleep(1)
+		time.sleep(0.5)
 
 def checkPlayerDuration():
 	if player.is_playing():
