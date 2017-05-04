@@ -54,8 +54,6 @@ def unloadOMX():
 
 def threadPlayLoop():
 	while not shutdown :
-		if verboseMode > 2:
-			print("play loop")
 		checkPlayerDuration()
 		time.sleep(0.5)
 
