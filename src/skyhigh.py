@@ -7,6 +7,8 @@ import getopt
 import threading
 import time
 from omxplayer import OMXPlayer
+import RPi.GPIO as GPIO
+import datetime
 
 #Global modes
 shutdown = False
@@ -28,6 +30,7 @@ def main():
 	signal.signal(signal.SIGINT, signal_handler)
 
 	initOMX()
+	initGPIO()
 
 	t = threading.Thread(target=threadPlayLoop, args=())
 	t.start()
@@ -47,6 +50,12 @@ def initOMX():
 		print("OMX Init")
 	player = OMXPlayer(playFile, args=['--no-osd', '--no-keys', '-b'])
 
+def initGPIO():
+	if verboseMode > 1:
+		print("Init GPIO Input")
+	GPIO.setmode(GPIO.BOARD)
+	GPIO.setup(40, GPIO.IN)
+
 def unloadOMX():
 	if verboseMode > 1:
 		print("OMX Unload")
@@ -55,7 +64,8 @@ def unloadOMX():
 def threadPlayLoop():
 	while not shutdown :
 		checkPlayerDuration()
-		time.sleep(0.5)
+		checkPirSensor()
+		time.sleep(0.2)
 
 def checkPlayerDuration():
 	if player.is_playing():
@@ -68,6 +78,15 @@ def checkPlayerDuration():
 			if verboseMode > 1:
 				print("Less than a second left. Pause OMX.")
 			player.pause()
+
+def checkPirSensor():
+	PirSensor = GPIO.input(40)
+	if player.is_playing() == False and PirSensor == 0:
+		if verboseMode > 0:
+			print(datetime.datetime.now().isoformat())
+			print("PIr sensor triggered, play clip.")
+		player.set_position(0)
+		player.play()
 
 def aboutAndUsage():
 	about()
