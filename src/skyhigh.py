@@ -13,8 +13,9 @@ import datetime
 #Global modes
 shutdown = False
 verboseMode = 1
-playFile = "/home/pi/skyhigh/movie/MerAnEnBro.mp4"
+playFile = "/home/pi/skyhigh/movie/HISINGSBRON_MP4.mp4"
 player = None
+lastPlayed = 0
 
 def about():
 	print("SkyHigh")
@@ -75,18 +76,27 @@ def checkPlayerDuration():
 		if verboseMode > 2:
 			print("Duration: {}".format(delta))
 		if delta < 1:
+			global lastPlayed
 			if verboseMode > 1:
 				print("Less than a second left. Pause OMX.")
 			player.pause()
+			lastPlayed = time.time()
 
 def checkPirSensor():
 	PirSensor = GPIO.input(40)
 	if player.is_playing() == False and PirSensor == 0:
-		if verboseMode > 0:
-			print(datetime.datetime.now().isoformat())
-			print("PIr sensor triggered, play clip.")
-		player.set_position(0)
-		player.play()
+		deltaLastPlayed = time.time() - lastPlayed
+		if verboseMode > 1:
+			print("Delta: {}".format(deltaLastPlayed))
+		if deltaLastPlayed > 10:
+			if verboseMode > 0:
+				print(datetime.datetime.now().isoformat())
+				print("PIr sensor triggered, play clip.")
+			player.set_position(0)
+			player.play()
+		else:
+			if verboseMode > 0:
+				print("PIr sensor triggered, but won't play {}".format(deltaLastPlayed))
 
 def aboutAndUsage():
 	about()
@@ -96,6 +106,7 @@ def usage():
 	print ("--file : filename to be played")
 	print ("--help : shows this help")
 	print ("--debug : shows all events")
+	print ("--verbose : shows even more")
 	print ("--silent : keeps quiet")
 
 def signal_handler(signal, frame):
